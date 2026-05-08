@@ -8,12 +8,12 @@ The extracted patches are later used for:
 - Ranking patches
 - Learning nucleus-cytoplasm relationships
 
-## Supported Cell Lines
+## Cell Lines
 
 - HFF
 - HMC3
 
-## Supported Senescence Conditions
+## Senescence Conditions
 
 - H2O2
 - Dox
