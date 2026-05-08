@@ -4,9 +4,9 @@ The code extracts overlapping nucleus and non-nucleus patches from cellular sene
 
 The extracted patches are later used for:
 
-- Contrastive learning
-- Encoder training
-- Senescence classification
+- Contrastive learning with encoder training
+- Ranking patches
+- Learning nucleus-cytoplasm relationships
 
 ## Supported Cell Lines
 
@@ -76,32 +76,15 @@ The training uses:
 - Senescence nucleus patches
 - Senescence non-nucleus patches
 
-The learned embeddings bring related nucleus and non-nucleus representations closer within the same condition, while separating control and senescence representations.
+The trained encoder is later used for patch ranking and interaction learning.
 
 ## Input
 
-This file uses the extracted patches from Step 1.
-
-Expected patch folders:
-
-```text
-output_folder/
-├── control/
-│   ├── overlapping_nucleus/
-│   └── overlapping_non_nucleus/
-│
-└── senescence/
-    ├── overlapping_nucleus/
-    └── overlapping_non_nucleus/
-```
-
-Users should update the patch folder paths according to the respective dataset.
+This step uses the extracted patches from Step 1.
 
 ---
 
 ## Run
-
-Run the training file using:
 
 ```bash
 python training_Esupconloss.py
@@ -111,7 +94,81 @@ python training_Esupconloss.py
 
 ## Output
 
-
 ```text
 esupconloss_encoder.pth
 ```
+# Step 3: Ranking Patches
+
+After contrastive learning, the saved encoder from Step 2 is used to rank nucleus and non-nucleus patches.
+
+This step trains a patch-level classification model using the frozen encoder learned from E-SupConLoss training.
+
+The model learns to classify whether a patch belongs to:
+
+- Control
+- Senescence
+
+The trained model is then used to rank the most important nucleus and non-nucleus patches.
+
+---
+
+## Input
+
+This step uses:
+
+- Extracted patches from Step 1
+- Saved encoder from Step 2
+
+---
+
+## Run
+
+```bash
+python Ranking_patches.py
+```
+
+---
+
+## Output
+
+```text
+encoder_mlp_patch_classifier.pth
+```
+# Step 4: Senescence Scoring with Cross-Attention
+
+After ranking the patches, the top-k nucleus and non-nucleus patches are selected for senescence prediction.
+
+This step uses a cross-attention network to learn relationships between nucleus and non-nucleus patches and generates a senescence probability score for each image.
+
+The workflow includes:
+
+- Patch extraction
+- Patch ranking
+- Top-k patch selection
+- Cross-attention interaction learning
+- Senescence probability prediction
+
+---
+
+## Input
+
+This step uses:
+
+- Control and senescence images
+
+---
+
+## Run
+
+```bash
+python cross_attention_senescence_scoring.py
+```
+
+---
+
+## Output
+
+The model generates a probability score indicating whether the image belongs to:
+
+- Control
+- Senescence
